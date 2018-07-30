@@ -1,0 +1,381 @@
+#1.1.1.1
+echo "install cramfs /bin/true" >> /etc/modprobe.d/CIS.conf
+#1.1.1.2
+echo "install freevxfs /bin/true" >> /etc/modprobe.d/CIS.conf
+#1.1.1.3
+echo "install jffs2 /bin/true" >> /etc/modprobe.d/CIS.conf
+#1.1.1.4
+echo "install hfs /bin/true" >> /etc/modprobe.d/CIS.conf
+#1.1.1.5
+echo "install hfsplus /bin/true" >> /etc/modprobe.d/CIS.conf
+#1.1.1.6
+echo "install squahfs /bin/true" >> /etc/modprobe.d/CIS.conf
+#1.1.1.7
+echo "install udf /bin/true" >> /etc/modprobe.d/CIS.conf
+#1.1.1.8
+echo "install vfat /bin/true" >> /etc/modprobe.d/CIS.conf
+#1.1.2, 1.1.3, 1.1.4, 1.1.5
+systemctl unmask tmp.mount
+systemctl enable tmp.mount
+cat << EOF > /etc/systemd/system/local-fs.target.wants/tmp.mount
+[Mount]
+What=tmpfs
+Where=/tmp
+Type=tmpfs
+Options=mode=1777,strictatime,noexec,nodev,nosuid
+EOF
+mount -o remount /tmp
+#1.1.8, 1.1.9, 1.1.10
+echo "/tmp /var/tmp none bind,nodev,nosuid,noexec 0 0" >> /etc/fstab
+#1.1.14
+sed -i.bak '/LV02/d' /etc/fstab
+echo "/dev/mapper/VG00-LV02 /home ext4 defaults,nodev 0 0" >> /etc/fstab
+#1.1.21
+df --local -P | awk {'if (NR!=1) print $6'} | xargs -I '{}' find '{}' -xdev -type d -perm -0002 2>/dev/null | xargs chmod a+t
+#1.1.22
+systemctl disable autofs
+#1.2.2
+sed -i.bak '/gpgcheck/d' /etc/yum.repo.d/cdrom.repo
+echo "gpgcheck=1" >> /etc/yum.repo.d/cdrom.repo
+rpm --import /u01/repo/mnt/RPM-GPG*
+yum update
+#1.2.5
+chkconfig rhnsd off
+#1.3.1
+yum install aide
+aide --init
+mv /var/lib/aide/aide.db.new.gz /var/lib/aide/aide.db.gz
+#1.3.2
+(crontab -l 2>/dev/null; echo "0 5 * * * /usr/sbin/aide --check") | crontab -u root -
+#1.4.1
+chown root:root /boot/grub2/grub.cfg
+chmod og-rwx /boot/grub2/grub.cfg
+#1.5.1
+sysctl fs.suid_dumpable
+echo "* hard core 0" >> /etc/security/limits.conf
+echo "fs.suid_dumpable = 0" >> /etc/sysctl.conf
+sysctl -w fs.suid_dumpable=0
+#1.5.3
+echo "kernel.randomize_va_space = 2" >> /etc/sysctl.conf
+sysctl -w kernel.randomize_va_space=2
+#1.5.4
+prelink -ua
+yum remove prelink
+#1.7.1.1
+echo "" >> /etc/motd
+#1.7.1.2
+cat << EOF >/etc/issue
+NOTICE: This system is the property of IRD and is designated for official business use only. It is a criminal violation to access taxpayer records other than for the performance of official duties.
+To protect the system from unauthorised use and to ensure that the system is functioning properly, activities on this system are monitored and recorded and subject to audit. Use of this system expresses the consent to such monitoring and recording. Any unauthorised access or use of this system is prohibited and could be subject to criminal and civil penalties.
+EOF
+#1.7.1.3
+cat << EOF >/etc/issue.net
+NOTICE: This system is the property of IRD and is designated for official business use only. It is a criminal violation to access taxpayer records other than for the performance of official duties.
+To protect the system from unauthorised use and to ensure that the system is functioning properly, activities on this system are monitored and recorded and subject to audit. Use of this system expresses the consent to such monitoring and recording. Any unauthorised access or use of this system is prohibited and could be subject to criminal and civil penalties.
+EOF
+#1.7.1.4
+chown root:root /etc/motd
+chmod 644 /etc/motd
+#1.7.1.5
+chown root:root /etc/issue
+chmod 644 /etc/issue
+#1.7.1.5
+chown root:root /etc/issue.net
+chmod 644 /etc/issue.net
+#1.8
+yum update
+#2.1.1
+chkconfig chargen-dgram off
+chkconfig chargen-stream off
+#2.1.2
+chkconfig daytime-dgram off
+chkconfig daytime-stream off
+#2.1.3
+chkconfig discard-dgram off
+chkconfig discard-stream off
+#2.1.4
+chkconfig echo-dgram off
+chkconfig echo-stream off
+#2.1.5
+chkconfig time-dgram off
+chkconfig time-stream off
+#2.1.6
+chkconfig tftp off
+#2.1.7
+systemctl disable xinetd
+#2.2.3
+systemctl disable avahi-daemon
+#2.2.4
+systemctl disable cups
+#2.2.5
+systemctl disable dhcpd
+#2.2.6
+systemctl disable slapd
+#2.2.8
+systemctl diable named
+#2.2.9
+systemctl disable vsftpd
+#2.2.11
+systemctl disable dovecot
+#2.2.12
+systemctl disable smb
+#2.2.13
+systemctl diable squid
+#2.2.16
+systemctl disable ypserv
+#2.2.17
+systemctl disable rsh.socket
+systemctl disable rlogin.socket
+systemctl disable rexec.socket
+#2.2.18
+systemctl disable ntalk
+#2.2.19
+systemctl disable telnet.socket
+#2.2.20
+systemctl disable tftp.socket
+#2.2.21
+systemctl disable rsyncd
+#2.3.1
+yum remove ypbind
+#2.3.2
+yum remove rsh
+#2.3.3
+yum remove talk
+#2.3.5
+yum remove openldap-clients
+#3.1.1
+echo "net.ipv4.ip_forward = 0" >> /etc/sysctl.conf
+sysctl -w net.ipv4.ip_forward=0
+sysctl -w net.ipv4.route.flush=1
+#3.1.2
+echo "net.ipv4.conf.all.send_redirects = 0" >> /etc/sysctl.conf
+echo "net.ipv4.conf.default.send_redirects = 0" >> /etc/sysctl.conf
+sysctl -w net.ipv4.conf.all.send_redirects=0
+sysctl -w net.ipv4.conf.default.send_redirects=0
+sysctl -w net.ipv4.route.flush=1
+#3.2.1
+echo "net.ipv4.conf.all.accept_source_route=0" >> /etc/sysctl.conf
+echo "net.ipv4.conf.default.accept_source_route=0" >> /etc/sysctl.conf
+sysctl -w net.ipv4.conf.all.accept_source_route=0
+sysctl -w net.ipv4.conf.default.accept_source_route=0
+sysctl -w net.ipv4.route.flush=1
+#3.2.2
+echo "net.ipv4.conf.default.accept_redirects=0" >> /etc/sysctl.conf
+echo "net.ipv4.conf.default.accept_redirects=0" >> /etc/sysctl.conf
+sysctl -w net.ipv4.conf.all.accept_redirects=0
+sysctl -w net.ipv4.conf.default.accept_redirects=0
+sysctl -w net.ipv4.route.flush=1
+#3.2.3
+echo "net.ipv4.conf.all.secure_redirects = 0" >> /etc/sysctl.conf
+echo "net.ipv4.conf.default.secure_redirects = 0">> /etc/sysctl.conf
+sysctl -w net.ipv4.conf.all.secure_redirects=0
+sysctl -w net.ipv4.conf.default.secure_redirects=0
+sysctl -w net.ipv4.route.flush=1
+#3.2.4
+echo "net.ipv4.conf.all.log_martians=1" >> /etc/sysctl.conf
+echo "net.ipv4.conf.default.log_martians=1" >> /etc/sysctl.conf
+sysctl -w net.ipv4.conf.all.log_martians=1
+sysctl -w net.ipv4.conf.default.log_martians=1
+sysctl -w net.ipv4.route.flush=1
+#3.2.5
+echo "net.ipv4.icmp_echo_ignore_broadcasts = 1" >> /etc/sysctl.conf
+sysctl -w net.ipv4.icmp_echo_ignore_broadcasts=1
+sysctl -w net.ipv4.route.flush=1
+#3.2.6
+echo "net.ipv4.icmp_ignore_bogus_error_responses = 1" >> /etc/sysctl.conf
+sysctl -w net.ipv4.icmp_ignore_bogus_error_responses=1
+sysctl -w net.ipv4.route.flush=1
+#3.2.7
+echo "net.ipv4.conf.all.rp_filter = 1" >> /etc/sysctl.conf
+echo "net.ipv4.conf.default.rp_filter = 1" >> /etc/sysctl.conf
+sysctl -w net.ipv4.conf.all.rp_filter=1
+sysctl -w net.ipv4.conf.default.rp_filter=1
+sysctl -w net.ipv4.route.flush=1
+#3.2.8
+echo "net.ipv4.tcp_syncookies = 1" >> /etc/sysctl.conf
+sysctl -w net.ipv4.tcp_syncookies=1
+sysctl -w net.ipv4.route.flush=1
+#3.3.1
+echo "net.ipv6.conf.all.accept_ra = 0" >> /etc/sysctl.conf
+echo "net.ipv6.conf.default.accept_ra = 0" >> /etc/sysctl.conf
+sysctl -w net.ipv6.conf.all.accept_ra=0
+sysctl -w net.ipv6.conf.default.accept_ra=0
+sysctl -w net.ipv6.route.flush=1
+#3.3.2
+echo "net.ipv6.conf.all.accept_redirect = 0" >> /etc/sysctl.conf
+echo "net.ipv6.conf.default.accept_redirect = 0" >> /etc/sysctl.conf
+sysctl -w net.ipv6.conf.all.accept_redirects=0
+sysctl -w net.ipv6.conf.default.accept_redirects=0
+sysctl -w net.ipv6.route.flush=1
+#3.3.3
+echo "options ipv6 disable=1" >> /etc/modprobe.d/CIS.conf
+#3.4.1
+yum install tcp_wrappers
+#3.4.3
+#echo "ALL: ALL" >> /etc/hosts.deny
+#3.4.5
+chown root:root /etc/hosts.deny
+chmod 644 /etc/hosts.deny
+#3.5.1
+echo "install dccp /bin/true" >>/etc/modprobe.d/CIS.conf
+#3.5.2
+echo "install sctp /bin/true" >>/etc/modprobe.d/CIS.conf
+#3.5.3
+echo "install rds /bin/true" >>/etc/modprobe.d/CIS.conf
+#3.5.4
+echo "install tipc /bin/true" >>/etc/modprobe.d/CIS.conf
+#4.1.1.3
+sed -i.bak '/max_log_file_action/d' /etc/audit/auditd.conf
+echo "max_log_file_action = keep_logs" >> /etc/audit/auditd.conf
+#4.1.2
+systemctl enable auditd
+#4.1.3
+sed -i.bak '/^\s*linux/ s/$/ audit=1/' /etc/default/grub
+grub2-mkconfig > /boot/grub2/grub.cfg
+#4.1.4
+echo "-a always,exit -F arch=b64 -S adjtimex -S settimeofday -k time-change" >> /etc/audit/audit.rules
+echo "-a always,exit -F arch=b32 -S adjtimex -S settimeofday -S stime -k time-change" >>/etc/audit/audit.rules
+echo "-a always,exit -F arch=b64 -S clock_settime -k time-change" >> /etc/audit/audit.rules
+echo "-a always,exit -F arch=b32 -S clock_settime -k time-change" >> /etc/audit/audit.rules
+echo "-w /etc/localtime -p wa -k time-change" >> /etc/audit/audit.rules
+#4.1.5
+echo "-w /etc/group -p wa -k identity" >> /etc/audit/audit.rules
+echo "-w /etc/passwd -p wa -k identity" >> /etc/audit/audit.rules
+echo "-w /etc/gshadow -p wa -k identity" >> /etc/audit/audit.rules
+echo "-w /etc/shadow -p wa -k identity" >> /etc/audit/audit.rules
+echo "-w /etc/security/opasswd -p wa -k identity" >> /etc/audit/audit.rules
+#4.1.6
+echo "-a always,exit -F arch=b64 -S sethostname -S setdomainname -k system-locale" >> /etc/audit/audit.rules
+echo "-a always,exit -F arch=b32 -S sethostname -S setdomainname -k system-locale" >> /etc/audit/audit.rules
+echo "-w /etc/issue -p wa -k system-locale" >> /etc/audit/audit.rules
+echo "-w /etc/issue.net -p wa -k system-locale" >> /etc/audit/audit.rules
+echo "-w /etc/hosts -p wa -k system-locale" >> /etc/audit/audit.rules
+echo "-w /etc/sysconfig/network -p wa -k system-locale" >> /etc/audit/audit.rules
+#4.1.7
+echo "-w /etc/selinux/ -p wa -k MAC-policy" >> /etc/audit/audit.rules
+#4.1.8
+echo "-w /var/log/lastlog -p wa -k logins" >> /etc/audit/audit.rules
+echo "-w /var/run/faillock/ -p wa -k logins" >> /etc/audit/audit.rules
+#4.1.9
+echo "-w /var/run/utmp -p wa -k session" >> /etc/audit/audit.rules
+echo "-w /var/log/wtmp -p wa -k session" >> /etc/audit/audit.rules
+echo "-w /var/log/btmp -p wa -k session" >> /etc/audit/audit.rules
+#4.1.10
+echo "-a always,exit -F arch=b64 -S chmod -S fchmod -S fchmodat -F auid>=1000 -F auid!=4294967295 -k perm_mod" >> /etc/audit/audit.rules
+echo "-a always,exit -F arch=b32 -S chmod -S fchmod -S fchmodat -F auid>=1000 -F auid!=4294967295 -k perm_mod" >> /etc/audit/audit.rules
+echo "-a always,exit -F arch=b64 -S chown -S fchown -S fchownat -S lchown -F auid>=1000 -F auid!=4294967295 -k perm_mod" >> /etc/audit/audit.rules
+echo "-a always,exit -F arch=b32 -S chown -S fchown -S fchownat -S lchown -F auid>=1000 -F auid!=4294967295 -k perm_mod" >> /etc/audit/audit.rules
+echo "-a always,exit -F arch=b64 -S setxattr -S lsetxattr -S fsetxattr -S removexattr -S lremovexattr -S fremovexattr -F auid>=1000 -F auid!=4294967295 -k perm_mod" >> /etc/audit/audit.rules
+echo "-a always,exit -F arch=b32 -S setxattr -S lsetxattr -S fsetxattr -S removexattr -S lremovexattr -S fremovexattr -F auid>=1000 -F auid!=4294967295 -k perm_mod" >> /etc/audit/audit.rules
+#4.1.11
+echo "-a always,exit -F arch=b64 -S creat -S open -S openat -S truncate -S ftruncate -F exit=-EACCES -F auid>=1000 -F auid!=4294967295 -k access" >> /etc/audit/audit.rules
+echo "-a always,exit -F arch=b32 -S creat -S open -S openat -S truncate -S ftruncate -F exit=-EACCES -F auid>=1000 -F auid!=4294967295 -k access" >> /etc/audit/audit.rules
+echo "-a always,exit -F arch=b64 -S creat -S open -S openat -S truncate -S ftruncate -F exit=-EPERM -F auid>=1000 -F auid!=4294967295 -k access" >> /etc/audit/audit.rules
+echo "-a always,exit -F arch=b32 -S creat -S open -S openat -S truncate -S ftruncate -F exit=-EPERM -F auid>=1000 -F auid!=4294967295 -k acces" >> /etc/audit/audit.rules
+#4.1.12
+find / -xdev \( -perm -4000 -o -perm -2000 \) -type f | awk '{print "-a always,exit -F path=" $1 " -F perm=x -F auid>=1000 -F auid!=4294967295 -k privileged" }' >> /etc/audit/audit.rules
+#4.1.13
+echo "-a always,exit -F arch=b64 -S mount -F auid>=1000 -F auid!=4294967295 -k mounts" >> /etc/audit/audit.rules
+echo "-a always,exit -F arch=b32 -S mount -F auid>=1000 -F auid!=4294967295 -k mounts">>/etc/audit/audit.rules
+#4.1.14
+echo "-a always,exit -F arch=b64 -S unlink -S unlinkat -S rename -S renameat -F auid>=1000 -F auid!=4294967295 -k delete" >> /etc/audit/audit.rules
+echo "-a always,exit -F arch=b32 -S unlink -S unlinkat -S rename -S renameat -F auid>=1000 -F auid!=4294967295 -k delete" >> /etc/audit/audit.rules
+#4.1.15
+echo "-w /etc/sudoers -p wa -k scope" >> /etc/audit/audit.rules
+echo "-w /etc/sudoers.d -p wa -k scope" >> /etc/audit/audit.rules
+#4.1.16
+echo "-w /var/log/sudo.log -p wa -k actions" >> /etc/audit/audit.rules
+#4.1.17
+echo "-w /sbin/insmod -p x -k modules" >> /etc/audit/audit.rules
+echo "-w /sbin/rmmod -p x -k modules" >> /etc/audit/audit.rules
+echo "-w /sbin/modprobe -p x -k modules" >> /etc/audit/audit.rules
+echo "-a always,exit arch=b64 -S init_module -S delete_module -k modules" >> /etc/audit/audit.rules
+#4.1.18
+echo "-e 2" >> /etc/audit/audit.rule
+#5.1.1
+systemctl enable crond
+#5.1.2
+chown root:root /etc/crontab
+chmod og-rwx /etc/crontab
+#5.1.3
+chown root:root /etc/cron.hourly
+chmod og-rwx /etc/cron.hourly
+#5.1.4
+chown root:root /etc/cron.daily
+chmod og-rwx /etc/cron.daily
+#5.1.5
+chown root:root /etc/cron.weekly
+chmod og-rwx /etc/cron.weekly
+#5.1.6
+chown root:root /etc/cron.monthly
+chmod og-rwx /etc/cron.monthly
+#5.1.7
+chown root:root /etc/cron.d
+chmod og-rwx /etc/cron.d
+#5.1.8
+rm /etc/cron.deny
+rm /etc/at.deny
+touch /etc/cron.allow
+touch /etc/at.allow
+chmod og-rwx /etc/cron.allow
+chmod og-rwx /etc/at.allow
+chown root:root /etc/cron.allow
+chown root:root /etc/at.allow
+#5.2.1
+chown root:root /etc/ssh/sshd_config
+chmod og-rwx /etc/ssh/sshd_config
+#5.2.2
+echo "Protocol 2" >>/etc/ssh/sshd_config
+#5.2.3
+echo "LogLevel INFO" >>/etc/ssh/sshd_config
+#5.2.4
+echo "X11Forwarding no" >> /etc/ssh/sshd_config
+#5.2.5
+echo "MaxAuthTries 4" >>/etc/ssh/sshd_config
+#5.2.6
+echo "IgnoreRhosts yes" >> /etc/ssh/sshd_config
+#5.2.7
+echo "HostbasedAuthentication no" >>/etc/ssh/sshd_config
+#5.2.8
+#echo "PermitRootLogin no" >> /etc/ssh/sshd_config
+#5.2.9
+echo "PermitEmptyPasswords no" >>/etc/ssh/sshd_config
+#5.2.10
+echo "PermitUserEnvironment no" >> /etc/ssh/sshd_config
+#5.2.11
+echo "Ciphers aes256-ctr,aes192-ctr,aes128-ctr" >> /etc/ssh/sshd_config
+#5.2.12
+echo "MACs hmac-sha2-512-etm@openssh.com,hmac-sha2-256-etm@openssh.com,umac-128-etm@openssh.com,hmac-sha2-512,hmac-sha2-256,umac-128@openssh.com" >> /etc/ssh/sshd_config
+#5.2.13
+echo "ClientAliveInterval 300" >> /etc/ssh/sshd_config
+echo "ClientAliveCountMax 0" >> /etc/ssh/sshd_config
+#5.2.14
+echo "LoginGraceTime 60" >>/etc/ssh/sshd_config
+#5.2.16
+echo "Banner /etc/issue.net" >> /etc/ssh/sshd_config
+#5.4.3
+usermod -g 0 root
+#6.1.2
+chown root:root /etc/passwd
+chmod 644 /etc/passwd
+#6.1.3
+chown root:root /etc/shadow
+chmod 000 /etc/shadow
+#6.1.4
+chown root:root /etc/group
+chmod 644 /etc/group
+#6.1.5
+chown root:root /etc/gshadow
+chmod 000 /etc/gshadow
+#6.1.6
+chown root:root /etc/passwd-
+chmod 600 /etc/passwd-
+#6.1.7
+chown root:root /etc/shadow-
+chmod 600 /etc/shadow-
+#6.1.8
+chown root:root /etc/group-
+chmod 600 /etc/group-
+#6.1.9
+chown root:root /etc/gshadow-
+chmod 600 /etc/gshadow-
