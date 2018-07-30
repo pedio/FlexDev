@@ -1,6 +1,0 @@
-ADD_REGISTRY='--add-registry registry.access.redhat.com'
-INSECURE_REGISTRY='--insecure-registry docker-registry.default.svc:5000'
-HTTP_PROXY='10.211.102.1:8080'
-HTTPS_PROXY='10.211.102.1:8080'
-NO_PROXY='.cluster.local,.osm.pccw.com,.svc,10.211.10.1,10.211.10.2,10.211.10.3,172.30.0.1,RSKSGA001.osm.pccw.com,10.128.0.0/14,172.30.0.0/16'
-
